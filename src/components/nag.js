@@ -3,35 +3,48 @@ import { TimerConstants } from '../timer';
 
 const Nag = (props) => {
 
-    const getMinutes = () => Math.floor(props.timerState.secondsLeft / 60);
-    const getSeconds = () => props.timerState.secondsLeft % 60;
+    const getMinutes = () => Math.floor(props.appState.secondsLeft / 60);
+    const getSeconds = () => props.appState.secondsLeft % 60;
     const getTimeDisplay = () => ("00" + getMinutes()).slice(-2) + ":" + ("00" + getSeconds()).slice(-2);
 
-    const renderWaiting = () => (
+    const renderCountdown = () => (
         <div>
-            <div>COUNTING DOWN UNTIL WE NAG: {getTimeDisplay()}</div>
+            <div>counting down on {props.appState.currentTaskName}: {getTimeDisplay()}</div>
+            <div>whoa whoa i need to pause! <input type="button" onClick={props.togglePause} value="pause" /></div>
         </div>
     )
 
-    const renderDidYouDoGood = () => (
-        <div>MWCTODO: DID YOU DO GOOD?</div>
+    //eventually, add more congratulations/denigrations for task completions.
+    // probably, these will need to display in renderCountdown().
+    // hooks will let us add state here which will make this easier/nicer.
+    // let's see how soon hooks land in public React.
+    const renderExpiredCountdown = () => (
+        <div>
+            <div>So you've been working on {props.appState.currentTaskName}.</div>
+            <div>Have you done well?</div>
+            {/* MWCTODO: fast clicking here can fire taskCompleted multiple times, not good. */}
+            <div><input type="button" onClick={() => props.taskCompleted(true)} value="Yes" /><input type="button" onClick={() => props.taskCompleted(false)} value="No" /></div>
+        </div>
     )
 
     const renderPaused = () => (
-        <div>MWCTODO: this is paused, but how did we get here exactly?</div>
+        <div>
+            <div>You're paused, you may commence goofing off or going to the potty or whatever.</div>
+            <div>I am done pausing, let's continue: <input type="button" onClick={props.togglePause} value="unpause" /></div>
+        </div>
     )
 
     const renderConditionally = () => {
-        if (props.timerState.timerStatus === TimerConstants.RUNNING) {
-            return renderWaiting();
-        } else if (props.timerState.timerStatus === TimerConstants.EXPIRED) {
-            return renderDidYouDoGood();
-        } else if (props.timerState.timerStatus === TimerConstants.PAUSED) {
+        if (props.appState.timerStatus === TimerConstants.RUNNING) {
+            return renderCountdown();
+        } else if (props.appState.timerStatus === TimerConstants.EXPIRED) {
+            return renderExpiredCountdown();
+        } else if (props.appState.timerStatus === TimerConstants.PAUSED) {
             return renderPaused();
-        } else if (props.timerState.timerStatus === null) {
+        } else if (props.appState.timerStatus === null) {
             return null;
         } else {
-            throw Error("Invalid timerState in Nag.");
+            throw Error("Invalid appState in Nag.");
         }
     }
 

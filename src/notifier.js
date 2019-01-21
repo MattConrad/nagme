@@ -1,36 +1,39 @@
 //https://developer.mozilla.org/en-US/docs/Web/API/notification
 
+
+//MWCTODO: let's get some audio in here.
+
 const Notifier = (callback) => {
     //possibly, we'll export this so it can be retried by the user.
     const requestNotificationPermission = () => {
         Notification.requestPermission().then((permission) => {
-            allowed = Notification.permission === "granted";
+            visualNotifyAllowed = Notification.permission === "granted";
 
-            callback(allowed);
+            callback(visualNotifyAllowed);
         });
     }
 
-    let allowed = false;
+    let visualNotifyAllowed = false;
 
     if (!window.Notification) {
         alert('Notifications are not supported in your browser.'
             + '\n\nYou won\'t ever be able to turn notifications on.'
             + '\n\nThis will limit the usefulness of this application.');
 
-        return { allowed };
+        return { allowed: visualNotifyAllowed };
     }
 
-    allowed = Notification.permission === "granted";
+    visualNotifyAllowed = Notification.permission === "granted";
 
-    if (!allowed) requestNotificationPermission();
+    if (!visualNotifyAllowed) requestNotificationPermission();
 
     const sendTimerExpiredNotification = () => {
-        if (!allowed) return;
-
-        new Notification("MWCTODO: this be a notification. what can we do with these");
+        if (visualNotifyAllowed) {
+            new Notification("MWCTODO: this be a notification. what can we do with these");
+        }
     }
 
-    return { allowed, sendTimerExpiredNotification };
+    return { allowed: visualNotifyAllowed, sendTimerExpiredNotification };
 }
 
 export default Notifier;

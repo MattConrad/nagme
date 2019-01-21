@@ -26,7 +26,7 @@ const TimerConstants = {
     callback should accept parameters: status, secondsLeft
 */
 const Timer = (callback, config) => {
-    const nagInterval = .5 * 60 * 1000;  //20 * 60 * 1000;
+    const nagInterval = .55 * 60 * 1000;  //20 * 60 * 1000;
 
     //they say timers won't fire faster than about 1x/sec on inactive browser tabs anyway.
     const tickInterval = 1.1 * 1000;
@@ -62,9 +62,10 @@ const Timer = (callback, config) => {
         nagTimeStart = new Date().valueOf();
         pauseTimeStart = 0;
         expiredTimeStart = 0;
+        status = TimerConstants.RUNNING;
     }
 
-    const togglePauseNag = () => {
+    const togglePause = () => {
         if (status === TimerConstants.EXPIRED) throw Error("Cannot toggle pause on an expired timer.");
 
         if (status === TimerConstants.PAUSED) {
@@ -73,7 +74,7 @@ const Timer = (callback, config) => {
             const now = new Date().valueOf();
             const nagDuration = pauseTimeStart - nagTimeStart;
 
-            nagTimeStart = new Date(now - nagDuration);
+            nagTimeStart = new Date(now - nagDuration).valueOf();
             pauseTimeStart = 0;
 
             status = TimerConstants.RUNNING;
@@ -88,7 +89,7 @@ const Timer = (callback, config) => {
     //once started, this timer continues forever. we don't need to keep timerId.
     window.setInterval(processTick, tickInterval);
 
-    return { restartNag, togglePauseNag };
+    return { restartNag, togglePause };
 }
 
 export { Timer, TimerConstants };
