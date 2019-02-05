@@ -3,6 +3,7 @@
 # added by me
 yarn.lock
 *.code-workspace
+temp.wav
 
 # dependencies
 /node_modules

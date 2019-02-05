@@ -26,10 +26,13 @@ const TimerConstants = {
     callback should accept parameters: status, secondsLeft
 */
 const Timer = (callback, config) => {
-    const nagInterval = .55 * 60 * 1000;  //20 * 60 * 1000;
-
     //they say timers won't fire faster than about 1x/sec on inactive browser tabs anyway.
     const tickInterval = 1.1 * 1000;
+
+    const minNagInterval = .1 * 60 * 1000; //5 * 60 * 1000;
+    const maxNagInterval = 20 * 60 * 1000;
+    const shortenNagIntervalMultiplier = .5;
+    let nagInterval = .10 * 60 * 1000;  //20 * 60 * 1000;
 
     let nagTimeStart = new Date().valueOf();
     let pauseTimeStart = 0;
@@ -48,20 +51,35 @@ const Timer = (callback, config) => {
             }
         }
 
-        callback(status, getTimerSeconds(now));
+        callback(getTimerSeconds(now));
     }
 
+    const getStatus = () => status;
+
     const getTimerSeconds = (now) => {
-        //later, we may want to introduce secondsElapsed along with secondsLeft for paused/expired states.
+        // later, we may want to introduce secondsElapsed along with secondsLeft for paused/expired states.
         if (status !== TimerConstants.RUNNING) return 0;
 
         return Math.round((nagTimeStart + nagInterval - now) / 1000);
     }
 
-    const restartNag = () => {
+    const completeTaskAndRestart = (taskSucceeded) => {
+        // success = extend next delay. failure = shorten next delay.
+        // eventually we may want a third state besides success/fail.
+        if (taskSucceeded) {
+            const newInterval = nagInterval * (1.0 / shortenNagIntervalMultiplier);
+            nagInterval = Math.min(newInterval, maxNagInterval);
+        } else {
+            const newInterval = nagInterval * shortenNagIntervalMultiplier;
+            nagInterval = Math.max(newInterval, minNagInterval);
+        }
+
+        console.log('newnaginterval', nagInterval);
+
         nagTimeStart = new Date().valueOf();
         pauseTimeStart = 0;
         expiredTimeStart = 0;
+
         status = TimerConstants.RUNNING;
     }
 
@@ -89,7 +107,7 @@ const Timer = (callback, config) => {
     //once started, this timer continues forever. we don't need to keep timerId.
     window.setInterval(processTick, tickInterval);
 
-    return { restartNag, togglePause };
+    return { completeTaskAndRestart, getStatus, togglePause };
 }
 
 export { Timer, TimerConstants };

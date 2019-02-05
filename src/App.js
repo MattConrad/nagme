@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
-import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
 import { Timer, TimerConstants } from './timer';
 import Notifier from './notifier';
-import Nag from './components/nag';
+import Nag from './components/Nag';
+import Tasks from './components/Tasks';
 
 const Test = () => <div>TEST, ONLY A TEST</div>;
 
@@ -13,30 +14,40 @@ class App extends Component {
     this.notifier = new Notifier(this.onNotificationsAllowedChange);
     this.timer = new Timer(this.onTimerTick, null);
     this.state = {
-      currentTaskName: "pointless endeavors",
+      currentTaskName: "nagme improvements",
       notificationsAllowed: this.notifier.allowed,
-      timerStatus: null,
+      lastTickTimerStatus: null,
       secondsLeft: 0
     };
   }
+  
+  onManageTasks = (history) => {
+    // force the timer to pause if the timer is running. 
+    if (this.timer.getStatus() === TimerConstants.RUNNING) this.timer.togglePause();
+
+    console.log(this.props);
+
+    history.push('/tasks');
+  }
 
   onTaskCompleted = (taskSucceeded) => {
-    //MWCTODO: this should revise nagInterval according to adjustment rules.
-    const newTaskName = this.state.currentTaskName + (taskSucceeded ? " YES" : " NO");
+    const newTaskName = this.state.currentTaskName;
     this.setState({ currentTaskName: newTaskName });
-    this.timer.restartNag();
+    this.timer.completeTaskAndRestart(taskSucceeded);
   }
 
   onNotificationsAllowedChange = (notificationsAllowed) => {
     this.setState({ notificationsAllowed });
   }
 
-  onTimerTick = (timerStatus, secondsLeft) => {
-    if (timerStatus === TimerConstants.EXPIRED && this.state.timerStatus === TimerConstants.RUNNING) {
-      this.notifier.sendTimerExpiredNotification();
+  onTimerTick = (secondsLeft) => {
+    const timerStatus = this.timer.getStatus();
+
+    if (timerStatus === TimerConstants.EXPIRED && this.state.lastTickTimerStatus === TimerConstants.RUNNING) {
+      this.notifier.invokeTimerExpired();
     }
 
-    this.setState({ timerStatus, secondsLeft });
+    this.setState({ lastTickTimerStatus: timerStatus, secondsLeft });
   }
 
   renderNotificationsNotAllowedWarning() {
@@ -57,8 +68,13 @@ class App extends Component {
         <BrowserRouter>
           <div>
             <Route path="/" exact render={() =>
-              <Nag appState={this.state} taskCompleted={this.onTaskCompleted} togglePause={this.timer.togglePause} />} />
+              <Nag appState={this.state}
+                manageTasks={this.onManageTasks}
+                taskCompleted={this.onTaskCompleted}
+                togglePause={this.timer.togglePause}
+              />} />
             <Route path="/test" component={Test} />
+            <Route path="/tasks" component={Tasks} />
           </div>
         </BrowserRouter>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimerConstants } from '../timer';
+import { withRouter } from 'react-router-dom';
 
 const Nag = (props) => {
 
@@ -11,6 +12,7 @@ const Nag = (props) => {
         <div>
             <div>counting down on {props.appState.currentTaskName}: {getTimeDisplay()}</div>
             <div>whoa whoa i need to pause! <input type="button" onClick={props.togglePause} value="pause" /></div>
+            <div>i want to switch or manage tasks <input type="button" onClick={() => props.manageTasks(props.history)} value="change or manage tasks" /></div>
         </div>
     )
 
@@ -18,6 +20,7 @@ const Nag = (props) => {
     // probably, these will need to display in renderCountdown().
     // hooks will let us add state here which will make this easier/nicer.
     // let's see how soon hooks land in public React.
+    // 
     const renderExpiredCountdown = () => (
         <div>
             <div>So you've been working on {props.appState.currentTaskName}.</div>
@@ -29,19 +32,20 @@ const Nag = (props) => {
 
     const renderPaused = () => (
         <div>
-            <div>You're paused, you may commence goofing off or going to the potty or whatever.</div>
+            <div>Your task {props.appState.currentTaskName} is now paused. You may commence goofing off or going to the potty or whatever.</div>
             <div>I am done pausing, let's continue: <input type="button" onClick={props.togglePause} value="unpause" /></div>
+            <div>i want to switch or manage tasks <input type="button" onClick={props.manageTasks} value="change or manage tasks" /></div>
         </div>
     )
 
     const renderConditionally = () => {
-        if (props.appState.timerStatus === TimerConstants.RUNNING) {
+        if (props.appState.lastTickTimerStatus === TimerConstants.RUNNING) {
             return renderCountdown();
-        } else if (props.appState.timerStatus === TimerConstants.EXPIRED) {
+        } else if (props.appState.lastTickTimerStatus === TimerConstants.EXPIRED) {
             return renderExpiredCountdown();
-        } else if (props.appState.timerStatus === TimerConstants.PAUSED) {
+        } else if (props.appState.lastTickTimerStatus === TimerConstants.PAUSED) {
             return renderPaused();
-        } else if (props.appState.timerStatus === null) {
+        } else if (props.appState.lastTickTimerStatus === null) {
             return null;
         } else {
             throw Error("Invalid appState in Nag.");
@@ -51,4 +55,5 @@ const Nag = (props) => {
     return renderConditionally();
 }
 
-export default Nag;
+//we have to withRouter so we can receive the history to pass the history back up to the component it came from.
+export default withRouter(Nag);

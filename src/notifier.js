@@ -27,13 +27,27 @@ const Notifier = (callback) => {
 
     if (!visualNotifyAllowed) requestNotificationPermission();
 
-    const sendTimerExpiredNotification = () => {
+    const invokeTimerExpired = () => {
         if (visualNotifyAllowed) {
             new Notification("MWCTODO: this be a notification. what can we do with these");
         }
+
+        //ok, audio is a hassle. let's do something else for now.
+        // const audio = new Audio("test.wav");
+        // const playPromise = audio.play();
+
+        // if (playPromise !== undefined) {
+        //     playPromise.then(_ => {
+        //         console.log('se worky');
+        //     }).catch(error => {
+        //         // Autoplay was prevented.
+        //         // Show a "Play" button so that user can start playback.
+        //         console.log('se NOT worky', error);
+        //     });
+        // }
     }
 
-    return { allowed: visualNotifyAllowed, sendTimerExpiredNotification };
+    return { allowed: visualNotifyAllowed, invokeTimerExpired };
 }
 
 export default Notifier;
